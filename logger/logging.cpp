@@ -127,7 +127,7 @@ namespace Logging
     }
     void SetupConsole()
     {
-        if (!AllocConsole)
+        if (!AllocConsole())
             return;
 
         FILE* fDummy;

@@ -11,8 +11,6 @@ void CloseThread(HMODULE hModule)
 DWORD WINAPI MainThread(HMODULE hModule)
 {
 
-
-
   //  MessageBoxA(nullptr, "Thread started", "WH", MB_ICONEXCLAMATION | MB_OK);
     Logging::Setup();
 
@@ -22,13 +20,15 @@ DWORD WINAPI MainThread(HMODULE hModule)
         CloseThread(hModule);
         return -1;
     }
-
+    Log("Hooking functions...");
     if (Hooking::InitAll() != STAT_OK)
+
     {
+        Log("Failed to initialize hooks");
         return -1;
     }
 
-
+    Log("Enabling all hooks...");
     if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
     {
         Log("MH_EnableHook(MH_ALL_HOOKS) failed.\n");
@@ -70,8 +70,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         
 
     }
- 
-    //CloseThread(hModule);
+
     return TRUE;
 }
 

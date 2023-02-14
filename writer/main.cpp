@@ -22,6 +22,6 @@ int main()
 {
     int a;
     std::cout << "Hello World!\n";
-    std::cout << ToHex(0xffff);
+    std::cout << ToHex(0xABCDEF00);
     std::cin >> a;
 }

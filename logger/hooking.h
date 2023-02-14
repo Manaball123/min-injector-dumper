@@ -29,11 +29,7 @@ namespace Hooking
 		Logging::Log(std::string("Hooked function: ") + proc_name);
 		return STAT_OK;
 	}
-	template <typename T1, typename T2>
-	int InitKernel32(const char* proc_name, T1 detour, T2 ppOrig)
-	{
-		InitHook(kernel32_dll, proc_name, detour, ppOrig);
-	}
+
 
 	inline int InitAll()
 	{
