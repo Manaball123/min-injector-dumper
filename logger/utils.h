@@ -30,6 +30,8 @@ namespace Logging
     void Log(std::string str);
     void WLog(std::wstring str);
     inline void Log(const char* str) { Log(std::string(str)); };
+
+    BOOL WriteBufferToDisk(LPCVOID buffer, size_t size, std::wstring appended_name);
     /*
     void Log(const wchar_t* str);
     void Log(std::wstring str);
@@ -97,7 +99,11 @@ namespace Logging
     {
         return ToHex(v);
     }
-
+    
+    inline std::string ArgDump(unsigned long v)
+    {
+        return ToHex(v);
+    }
     void Err(DWORD err);
 
     void SetupConsole();
@@ -157,4 +163,3 @@ Log(std::string("Value of ") + std::string(#arg) + std::string(" is: ") + ArgDum
 Log(std::string("----------FUNCTION CALL: ") + std::string(#fn) + std::string(" ----------"))
 }
 
-BOOL WriteBufferToDisk(LPCVOID buffer, size_t size, std::wstring appended_name);

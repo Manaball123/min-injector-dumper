@@ -6,7 +6,7 @@
 #include "instruction.h"
 #include <fstream>
 #include <TlHelp32.h>
-//
+//thanx logger
 NTSTATUS NTAPI NtCreateThreadEx(
     OUT PHANDLE hThread,
     IN ACCESS_MASK DesiredAccess,
@@ -171,14 +171,16 @@ int main()
     PTR_NtCreateThreadEx pNtCreateThreadEx = (PTR_NtCreateThreadEx)GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtCreateThreadEx");
 
     HANDLE hThread;
+    DWORD arg;
     
-   
+
     NTSTATUS status = pNtCreateThreadEx(
-        &hThread,                                   
+        &hThread,
         0x1FFFFF,
         NULL,
         hProcess,
         (LPTHREAD_START_ROUTINE)(scAddress + 0x18),
+        //this may not be null
         scAddress,
         FALSE, //start instantly
         NULL,

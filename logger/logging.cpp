@@ -147,7 +147,7 @@ namespace Logging
 
 
 
-BOOL WriteBufferToDisk(LPCVOID buffer, size_t size, std::wstring appended_name)
+BOOL Logging::WriteBufferToDisk(LPCVOID buffer, size_t size, std::wstring appended_name)
 {
 
     std::wstring fname = Logging::basePath;

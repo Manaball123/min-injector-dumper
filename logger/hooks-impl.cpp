@@ -18,7 +18,7 @@ BOOL WINAPI API::Hook_ReadProcessMemory(HANDLE hProcess, LPCVOID lpBaseAddress, 
 
 
     std::wstring fname = L"RPM";
-    fname.append(std::to_wstring(call_ctr++));
+    fname.append(std::to_wstring(call_ctr));
     fname.append(L".bin");
     call_ctr++;
 
@@ -44,7 +44,7 @@ BOOL WINAPI API::Hook_WriteProcessMemory(HANDLE hProcess, LPVOID lpBaseAddress, 
 
 
     std::wstring fname = L"WPM";
-    fname.append(std::to_wstring(call_ctr++));
+    fname.append(std::to_wstring(call_ctr));
     fname.append(L".bin");
     call_ctr++;
     WriteBufferToDisk(lpBuffer, nSize, fname);
@@ -91,7 +91,9 @@ LPVOID WINAPI API::Hook_VirtualAllocEx(
     LogArg(lpAddress);
     LogArg(dwSize);
     LogArg(flAllocationType);
-    return orig_VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect);
+    LPVOID res = orig_VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect);
+    LogArg(res);
+    return res;
 }
 
 
@@ -125,15 +127,23 @@ NTSTATUS NTAPI API::Hook_NtCreateThreadEx(
 )
 {
    
+    //might be 6 idk
+    typedef struct params {
+        DWORD args[6];
+    };
     
+
     NTSTATUS res = orig_NtCreateThreadEx(hThread, DesiredAccess, ObjectAttributes, ProcessHandle, lpStartAddress, lpParameter, Flags, StackZeroBits, SizeOfStackCommit, SizeOfStackReserve, lpBytesBuffer);
     if (ProcessHandle == INVALID_HANDLE_VALUE)
         return res;
 
     LogCall(NtCreateThreadEx);
+    LogArg(lpParameter);
     LogArg(*hThread);
     LogArg(ProcessHandle);
     LogArg(lpStartAddress);
+    
+    
    
     
 
