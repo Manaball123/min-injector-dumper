@@ -1,6 +1,15 @@
 #include "pch.h"
 using namespace Logging;
 
+
+
+
+
+BOOL WINAPI Hook_DllMain(HMODULE module, DWORD reason, LPVOID reserved)
+{
+    return 1;
+}
+
 HANDLE WINAPI API::Hook_OpenProcess(DWORD access, BOOL inheritHandle, DWORD pid)
 {
     return orig_OpenProcess(access, inheritHandle, pid);
@@ -14,7 +23,7 @@ BOOL WINAPI API::Hook_ReadProcessMemory(HANDLE hProcess, LPCVOID lpBaseAddress, 
     LogArg(hProcess);
     LogArg(lpBaseAddress);
     LogArg(lpBuffer);
-    Log(nSize);
+    LogArg(nSize);
 
 
     std::wstring fname = L"RPM";
@@ -59,7 +68,7 @@ HMODULE WINAPI API::Hook_LoadLibraryA(LPCSTR name)
 {
     HMODULE handle = orig_LoadLibraryA(name);
     Log("LoadLibraryA called.\n File name:" + std::string(name));
-    Log("Returned handle value of " + ToHex((uint64)handle));
+    Log("Returned handle value of " + ToHex((size_t)handle));
     return handle;
 }
 HMODULE WINAPI API::Hook_LoadLibraryW(LPCWSTR name)
@@ -67,7 +76,7 @@ HMODULE WINAPI API::Hook_LoadLibraryW(LPCWSTR name)
     HMODULE handle = orig_LoadLibraryW(name);
     Log("LoadLibraryW called.\n File name:");
     WLog(std::wstring(name));
-    Log("Returned handle value of " + ToHex((uint64)handle));
+    Log("Returned handle value of " + ToHex((size_t)handle));
     return handle;
 }
 
@@ -111,6 +120,18 @@ BOOL WINAPI API::Hook_CloseHandle(HANDLE handle)
     return orig_CloseHandle(handle);
 }
 
+struct MappingData
+{
+    LPVOID pBase;
+    LPVOID pPEH;
+    LPVOID addr1;
+    LPVOID addr2;
+    LPVOID addr3;
+    LPVOID addr4;
+
+};
+
+
 
 NTSTATUS NTAPI API::Hook_NtCreateThreadEx(
     OUT PHANDLE hThread,
@@ -127,17 +148,24 @@ NTSTATUS NTAPI API::Hook_NtCreateThreadEx(
 )
 {
    
-    //might be 6 idk
-    typedef struct params {
-        DWORD args[6];
-    };
+    //Log("LoadLibraryA");
+    //Log(ToHex(LoadLibraryA));
+
+    if (ProcessHandle != INVALID_HANDLE_VALUE)
+    {
+
+
+        Log("press f11 to start remote thread");
+        //while (!GetAsyncKeyState(VK_F11))
+        //    Sleep(100);
+    }
     
 
     NTSTATUS res = orig_NtCreateThreadEx(hThread, DesiredAccess, ObjectAttributes, ProcessHandle, lpStartAddress, lpParameter, Flags, StackZeroBits, SizeOfStackCommit, SizeOfStackReserve, lpBytesBuffer);
     if (ProcessHandle == INVALID_HANDLE_VALUE)
         return res;
-
-    LogCall(NtCreateThreadEx);
+    
+    
     LogArg(lpParameter);
     LogArg(*hThread);
     LogArg(ProcessHandle);
@@ -170,7 +198,7 @@ NTSTATUS NTAPI API::Hook_NtOpenProcess(
     LogCall(NtOpenProcess);
        
     LogArg(*ProcessHandle);
-    LogArg(AccessMask);
+    //LogArg(AccessMask);
     //LogArg(*ObjectAttributes);
     //LogArg(ObjectAttributes->ObjectName);
     LogArg(ClientId->UniqueProcess);
@@ -181,3 +209,14 @@ NTSTATUS NTAPI API::Hook_NtOpenProcess(
     
 }
 
+
+FARPROC WINAPI API::Hook_GetProcAddress(HMODULE hModule, LPCSTR lpProcName)
+{
+    FARPROC res = orig_GetProcAddress(hModule, lpProcName);
+    
+    LogCall(GetProcAddress);
+    LogArg(lpProcName);
+    LogArg(res);
+    return res;
+
+}

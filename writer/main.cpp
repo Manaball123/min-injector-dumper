@@ -25,10 +25,11 @@ NTSTATUS NTAPI NtCreateThreadEx(
 struct MappingData
 {
     LPVOID pBase;
-    LPVOID pDllMain;
+    LPVOID pPEH;
     LPVOID addr1;
     LPVOID addr2;
-    DWORD reserved_maybe[2] = { 0x764912A0 ,0x7648FB80 };
+    LPVOID pLoadLibraryA;
+    LPVOID pGetProcAddress;
 
 };
 
@@ -55,9 +56,11 @@ inline std::string ToHex(T v, size_t hex_len = sizeof(T) << 1)
 
 
 
-
+using namespace std;
 int main()
 {
+
+    LPVOID kek = (LPVOID)LoadLibraryA;
     int a;
     //maybe u need to unset the hex idk
     std::vector<char*> buffers;
@@ -80,6 +83,8 @@ int main()
 
 
     }
+
+    //std::cout << std::hex << (size_t)LoadLibraryA;
     /*
     while (1)
     {
@@ -107,9 +112,9 @@ int main()
         
     }
     */
-
+    
     using namespace std;
-    //fuck making the api, gonna just write a temporary one
+   
     HANDLE hProcess = INVALID_HANDLE_VALUE;
     PROCESSENTRY32 entry;
     entry.dwSize = sizeof(PROCESSENTRY32);
@@ -140,10 +145,26 @@ int main()
         return 0;
     }
         
+    /*
+    //shit below is NOT called
+#define ImageBase 0x4EA90000
+//#define ImageSize 0x00090400
+#define ImageSize 0x011EC000
+    BYTE* buf = new BYTE[ImageSize];
+    LPVOID pBase = (LPVOID)ImageBase;
+    cout << "helloz";
+    //VirtualProtectEx(hProcess, ImageBase, )
+    cout << ReadProcessMemory(hProcess, pBase, buf, ImageSize, NULL) << endl;
+    cout << GetLastError();
+    ofstream ofs("lukicharmz.dll");
+    ofs.write((const char*)(buf), ImageSize);
+    return 0;
+    */
+
 
     BYTE* baseAddress = (BYTE*)VirtualAllocEx(hProcess, NULL, 0x011EC000,MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     int ctr = 0;
-#define WriteMem(addr, size) WriteProcessMemory(hProcess, addr, buffers[ctr], size, nullptr); std::cout << "written buffer" << ctr << std::endl; ctr++; 
+#define WriteMem(addr, size) std::cout << "WPM returned: " << WriteProcessMemory(hProcess, addr, buffers[ctr], size, nullptr); std::cout << "\n written buffer" << ctr << std::endl; ctr++; 
     WriteMem(baseAddress, 0x00000400);
     WriteMem(baseAddress + 0x00001000, 0x0006F000);
     WriteMem(baseAddress + 0x00070000, 0x0001E400);
@@ -154,31 +175,36 @@ int main()
 
 
     BYTE* scAddress = (BYTE*)VirtualAllocEx(hProcess, NULL, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
+    DWORD oldp;
+    //VirtualProtectEx(hProcess, scAddress, 0x1000, PAGE_EXECUTE_READWRITE, &oldp);
     MappingData data = { 0 };
     data.pBase = baseAddress    + 0x00000000;
-    data.pDllMain = baseAddress + 0x00000108;
+    data.pPEH = baseAddress + 0x00000108;
     data.addr1 = baseAddress    + 0x011E4000;
     data.addr2 = baseAddress    + 0x0008C408;
+    data.pLoadLibraryA = LoadLibraryA;
+    data.pGetProcAddress = GetProcAddress;
 
 
-    WriteProcessMemory(hProcess, scAddress, &data, 0x18, NULL);
+    WriteProcessMemory(hProcess, scAddress, &data, sizeof(MappingData), NULL);
     
     ctr++;
     WriteMem(scAddress + 0x18, 0x100);
 
     using PTR_NtCreateThreadEx = decltype(NtCreateThreadEx)*;
     PTR_NtCreateThreadEx pNtCreateThreadEx = (PTR_NtCreateThreadEx)GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtCreateThreadEx");
+    using PTR_DllMain = BOOL (__stdcall*)(HMODULE, DWORD, LPVOID);
 
+    
     HANDLE hThread;
     
-   
+    BYTE* shellCodeStart = scAddress + 0x18;
     NTSTATUS status = pNtCreateThreadEx(
         &hThread,                                   
         0x1FFFFF,
         NULL,
         hProcess,
-        (LPTHREAD_START_ROUTINE)(scAddress + 0x18),
+        (LPTHREAD_START_ROUTINE)shellCodeStart,
         scAddress,
         FALSE, //start instantly
         NULL,
@@ -206,5 +232,14 @@ int main()
 
 
 
-    
+     
 }
+
+
+using pSCStart = DWORD(WINAPI*)(MappingData*);
+struct SCData
+{
+    MappingData* mapData;
+    pSCStart start;
+};
+

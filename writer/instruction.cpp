@@ -46,7 +46,7 @@ void CMDCreateBuffer::Callback()
     void* buf = malloc(buf_size);
     Vars::buffers.insert(std::pair<std::string, void*>(name,buf));
     cout << "Buffer Address: " << ToHex((size_t)buf);
-
+   
 
 
     

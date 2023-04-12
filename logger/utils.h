@@ -36,6 +36,11 @@ namespace Logging
     void Log(const wchar_t* str);
     void Log(std::wstring str);
     */
+    
+    std::string WStrToStr(const wchar_t* in);
+    inline std::string WStrToStr(std::wstring ws) {
+        return WStrToStr(ws.c_str());
+    }
 
     //lazy lol
 
@@ -44,6 +49,12 @@ namespace Logging
     {
         Log(std::to_string(v));
     };
+    template <>
+    inline void Log(std::wstring ws)
+    {
+        Log(WStrToStr(ws));
+    }
+
 
 
 
@@ -88,22 +99,18 @@ namespace Logging
     template<class T>
     inline std::string ArgDump(T v)
     {
+        if (sizeof(v) == sizeof(size_t))
+        {
+            return ToHex((size_t)v);
+        }
         return HexDump(v);
     }
-    
-    inline std::string ArgDump(HANDLE v)
+    template<>
+    inline std::string ArgDump<const char*>(const char* v)
     {
-        return ToHex((size_t)v);
-    }
-    inline std::string ArgDump(size_t v)
-    {
-        return ToHex(v);
+        return std::string(v);
     }
     
-    inline std::string ArgDump(unsigned long v)
-    {
-        return ToHex(v);
-    }
     void Err(DWORD err);
 
     void SetupConsole();

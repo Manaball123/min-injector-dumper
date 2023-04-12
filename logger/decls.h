@@ -47,7 +47,10 @@ NTSYSAPI NTSTATUS NTAPI NtOpenProcess(
 	OUT PHANDLE             ProcessHandle,
 	IN ACCESS_MASK          AccessMask,
 	IN POBJECT_ATTRIBUTES   ObjectAttributes,
-	IN PCLIENT_ID           ClientId);
+	IN PCLIENT_ID           ClientId
+);
+
+using fn_DllMain = BOOL(__stdcall)(HMODULE, DWORD, LPVOID);
 
 
 #endif

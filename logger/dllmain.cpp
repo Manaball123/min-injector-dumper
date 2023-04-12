@@ -41,10 +41,8 @@ DWORD WINAPI MainThread(HMODULE hModule)
     Log("Hooks set.\nPress 'END' to terminate thread... \n");
 
     while (!GetAsyncKeyState(VK_END))
-    {
-
         Sleep(100);
-    }
+    
 
     Log("Thread terminated.\nExiting... \n");
     CloseThread(hModule);

@@ -46,12 +46,13 @@ namespace API
 	DeclFn(VirtualFreeEx);
 	DeclFn(VirtualProtectEx);
 
-
+	
 	//ntdll
 	//needs to be manually declared
 
 	DeclFn(NtCreateThreadEx);
 	DeclFn(NtOpenProcess);
+	DeclFn(GetProcAddress);
 
 
 	/*
@@ -74,14 +75,19 @@ namespace API
 		AddKernel32(ReadProcessMemory)
 		AddKernel32(WriteProcessMemory)
 		AddKernel32(LoadLibraryExW)
-		//AddKernel32(LoadLibraryA)
-		//AddKernel32(LoadLibraryW)
+		AddKernel32(LoadLibraryA)
+		AddKernel32(LoadLibraryW)
 		//AddKernel32(CreateThread)
 		//AddKernel32(CloseHandle)
 		AddKernel32(VirtualAllocEx)
+		//AddKernel32(GetProcAddress)
+		AddKernel32(VirtualQueryEx)
+
+
+		
 		AddNtDll(NtCreateThreadEx)
 		AddNtDll(NtOpenProcess)
 	};
-
+	fn_DllMain* orig_DllMain;
 }
 
